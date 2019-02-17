@@ -14,6 +14,11 @@ class OrderService implements OrderServiceInterface
 
     public function getProductPlacedOrderSummary(string $productId)
     {
-        return $this->productRepository->getPlacedOrdersSummary($productId);
+        return $this->productRepository->getPlacedOrdersReport($productId);
+    }
+
+    public function placeOrder(array $order)
+    {
+        return $this->productRepository->insertOrder($order);
     }
 }

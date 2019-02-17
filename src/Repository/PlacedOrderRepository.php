@@ -14,7 +14,23 @@ class PlacedOrderRepository implements PlacedOrderRepositoryInterface
         $this->collection = $mongoClient->selectCollection('wallet', 'placedOrders');
     }
 
-    public function getPlacedOrdersSummary(string $productId)
+    public function insertOrder(array $order)
+    {
+        $order['id'] = md5(uniqid(rand(), true));
+        $order['expirationDate'] = new UTCDateTime(strtotime($order['expirationDate'])* 1000);
+        $this->collection->insertOne($order);
+    }
+
+    public function getOrderList(string $productId, float $value) : array
+    {
+        $filter = ['productId' => $productId, 'maxValue' => ['$gte' => $value]];
+        $options = ['projection' => ['_id' => 0]];
+        $cursor = $this->collection->find($filter, $options);
+
+        return $cursor->toArray();
+    }
+
+    public function getPlacedOrdersReport(string $productId)
     {
 
         $aggregationPipeline = [
