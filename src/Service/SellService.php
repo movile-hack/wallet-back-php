@@ -38,8 +38,13 @@ class SellService implements SellServiceInterface
             $buyer = $order['buyerId'];
             $this->transactionRepository->processTransaction($sellerId, $buyer, $value);
             $this->orderRepository->updateOrderToExecuted($order);
-            $this->notificationRepository->notifyOrderExecutedToBuyer($order);
         }
+        /*
+         * A notificação do buyer deve ser executada dentro do for,
+         * entretanto, para evitar consumir a cota da API da Wavy,
+         * será executada apenas uma vez fora do for com a última ordem
+         */
+        $this->notificationRepository->notifyOrderExecutedToBuyer($order);
         $this->notificationRepository->notifyOrderExecutedToSeller($sell);
         return $orderList;
     }
