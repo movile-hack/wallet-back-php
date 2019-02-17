@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+
+  wallet-webserver:
+    image: rafapg/service-nginx:latest
+    ports:
+      - "8080:80"
+    links:
+      - wallet-phpfpm:service-phpfpm
+    depends_on:
+      - wallet-phpfpm
+  wallet-phpfpm:
+    image: casaecafe/base-service-phpfpm:latest
+    volumes:
+      - .:/var/www/service
+    links:
+      - mongo-database:wallet-database
+
+  #MONGO
+  mongo-database:
+    image: mongo:latest
+    volumes:
+      - ./mongodb:/data/db
+    ports:
+      - "27018:27017"
