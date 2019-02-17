@@ -14,7 +14,15 @@ class NotificationRepository implements NotificationRepositoryInterface
 
     public function notifyOrderExecutedToBuyer(array $order)
     {
-        $message = sprintf("Rafael, você conseguiu comprar barato!");
+        $productId = $order['productId'];
+        $productMap = [
+            '12365419' => 'Macbook',
+            '52967376' => 'Iphone',
+            '52901919' => 'Playstation 4'
+        ];
+
+
+        $message = sprintf("Rafael, seu %s está a caminho e você ainda economizou!!!!", $productMap[$productId]);
 
         $options = [
             'json' => [
@@ -24,11 +32,12 @@ class NotificationRepository implements NotificationRepositoryInterface
             ],
             'headers' => ['Access-key' => 'ek-78945196321']
         ];
-        //$this->notificationClient->request('POST', '', $options);
+        $this->notificationClient->request('POST', '', $options);
     }
 
     public function notifyOrderExecutedToSeller(array $sell)
     {
+        //Notificação desabilitada para evitar uso desnecessário da API
         $message = sprintf("Rafael, você conseguiu vender muito, parabéns");
 
         $options = [
