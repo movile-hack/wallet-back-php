@@ -2,14 +2,19 @@
 
 namespace App\Service;
 
-use App\Repository\PlacedOrderRepositoryInterface;
+use App\Repository\OrderRepositoryInterface;
+use App\Repository\TransactionRepositoryInterface;
 
 class OrderService implements OrderServiceInterface
 {
     private $productRepository;
-    public function __construct(PlacedOrderRepositoryInterface $productRepository)
-    {
+    private $transactionRepository;
+    public function __construct(
+        OrderRepositoryInterface $productRepository,
+        TransactionRepositoryInterface $transactionRepository
+    ) {
         $this->productRepository = $productRepository;
+        $this->transactionRepository = $transactionRepository;
     }
 
     public function getProductPlacedOrderSummary(string $productId)
@@ -19,6 +24,7 @@ class OrderService implements OrderServiceInterface
 
     public function placeOrder(array $order)
     {
+        $this->transactionRepository->reserveOrder($order);
         return $this->productRepository->insertOrder($order);
     }
 }

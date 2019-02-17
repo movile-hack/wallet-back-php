@@ -2,19 +2,24 @@
 
 namespace App\Service;
 
-use App\Repository\PlacedOrderRepositoryInterface;
+use App\Repository\NotificationRepositoryInterface;
+use App\Repository\OrderRepositoryInterface;
 use App\Repository\TransactionRepositoryInterface;
+use MongoDB\Model\BSONDocument;
 
 class SellService implements SellServiceInterface
 {
     private $orderRepository;
     private $transactionRepository;
+    private $notificationRepository;
     public function __construct(
-        PlacedOrderRepositoryInterface $orderRepository,
-        TransactionRepositoryInterface $transactionRepository
+        OrderRepositoryInterface $orderRepository,
+        TransactionRepositoryInterface $transactionRepository,
+        NotificationRepositoryInterface $notificationRepository
     ) {
         $this->orderRepository = $orderRepository;
         $this->transactionRepository = $transactionRepository;
+        $this->notificationRepository = $notificationRepository;
     }
 
     public function processSell(array $sell)
@@ -23,11 +28,19 @@ class SellService implements SellServiceInterface
         $value = $sell['value'];
         $sellerId = $sell['sellerId'];
         $orderList = $this->orderRepository->getOrderList($productId, $value);
+        $itemsSold = count($orderList);
+        $sell['itemsSold'] = $itemsSold;
 
+        /** @var BSONDocument $order */
         foreach ($orderList as $order) {
+            $order = iterator_to_array($order);
+            $order['sellerId'] = $sellerId;
             $buyer = $order['buyerId'];
             $this->transactionRepository->processTransaction($sellerId, $buyer, $value);
+            $this->orderRepository->updateOrderToExecuted($order);
+            $this->notificationRepository->notifyOrderExecutedToBuyer($order);
         }
+        $this->notificationRepository->notifyOrderExecutedToSeller($sell);
         return $orderList;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Repository\PlacedOrderRepositoryInterface;
+use App\Repository\OrderRepositoryInterface;
 use App\Repository\ProductRepositoryInterface;
 
 class ProductService implements ProductServiceInterface
@@ -12,7 +12,7 @@ class ProductService implements ProductServiceInterface
 
     public function __construct(
         ProductRepositoryInterface $productRepository,
-        PlacedOrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository
     ) {
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;

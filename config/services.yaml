@@ -5,6 +5,14 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
 
+    wavy.http.client.service.config:
+        base_uri: 'http://messaging-api.wavy.global:8080/v1/sms/send'
+        timeout: 10
+
+    zoop.http.client.service.config:
+        base_uri: 'https://api.zoop.ws'
+        timeout: 10
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -34,3 +42,21 @@ services:
             - 'mongodb://wallet-database:27017'
             - []
             - []
+
+    App\Repository\NotificationRepository:
+        arguments:
+            - '@notification.http.client'
+
+    notification.http.client:
+        class: 'GuzzleHttp\Client'
+        arguments:
+            - '%wavy.http.client.service.config%'
+
+    App\Repository\TransactionRepository:
+        arguments:
+            - '@transaction.http.client'
+
+    transaction.http.client:
+        class: 'GuzzleHttp\Client'
+        arguments:
+            - '%zoop.http.client.service.config%'

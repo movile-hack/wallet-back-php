@@ -1,33 +1,40 @@
 <?php
 
-
 namespace App\Repository;
 
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Client;
 
-class PlacedOrderRepository implements PlacedOrderRepositoryInterface
+class OrderRepository implements OrderRepositoryInterface
 {
-    private $collection;
+    private $placedOrderCollection;
+    private $executedOrderCollection;
     public function __construct(Client $mongoClient)
     {
-        $this->collection = $mongoClient->selectCollection('wallet', 'placedOrders');
+        $this->placedOrderCollection = $mongoClient->selectCollection('wallet', 'placedOrders');
+        $this->executedOrderCollection = $mongoClient->selectCollection('wallet', 'executedOrders');
     }
 
     public function insertOrder(array $order)
     {
         $order['id'] = md5(uniqid(rand(), true));
         $order['expirationDate'] = new UTCDateTime(strtotime($order['expirationDate'])* 1000);
-        $this->collection->insertOne($order);
+        $this->placedOrderCollection->insertOne($order);
     }
 
     public function getOrderList(string $productId, float $value) : array
     {
         $filter = ['productId' => $productId, 'maxValue' => ['$gte' => $value]];
         $options = ['projection' => ['_id' => 0]];
-        $cursor = $this->collection->find($filter, $options);
+        $cursor = $this->placedOrderCollection->find($filter, $options);
 
         return $cursor->toArray();
+    }
+
+    public function updateOrderToExecuted(array $order)
+    {
+        $this->placedOrderCollection->deleteOne(['id' => $order['id']]);
+        $this->executedOrderCollection->insertOne($order);
     }
 
     public function getPlacedOrdersReport(string $productId)
@@ -38,10 +45,11 @@ class PlacedOrderRepository implements PlacedOrderRepositoryInterface
             ['$match' => [
                 'productId' => $productId, 'expirationDate' => ['$gte' => new UTCDateTime(strtotime("now"))]
             ]],
-            ['$group' => ['_id' => '$maxValue', 'count' => ['$sum' => 1]]]
+            ['$group' => ['_id' => '$maxValue', 'count' => ['$sum' => 1]]],
+            ['$sort' =>  ['_id' => -1]]
         ];
 
-        $aggregation = $this->collection->aggregate($aggregationPipeline);
+        $aggregation = $this->placedOrderCollection->aggregate($aggregationPipeline);
 
         $report = [];
         $totalCustomers = 0;

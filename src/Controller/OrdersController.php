@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class PlacedOrdersController
+class OrdersController
 {
     private $productService;
     public function __construct(OrderServiceInterface $productService)
@@ -26,7 +26,7 @@ class PlacedOrdersController
     }
 
     /**
-     * @Route("/products/{productId}/placedOrders", methods={"GET"})
+     * @Route("/products/{productId}/orders", methods={"GET"})
      * @param string $productId The product's placed orders
      * @return Response
      */
@@ -37,12 +37,12 @@ class PlacedOrdersController
     }
 
     /**
-     * @Route("/products/{productId}/placedOrders", methods={"POST"})
+     * @Route("/products/{productId}/orders", methods={"POST"})
      * @param Request $request The HTTP Request Object
      * @param string $productId The product's placed orders
      * @return Response
      */
-    public function postProductPlacedOrders(Request $request, string $productId)
+    public function postProductOrder(Request $request, string $productId)
     {
         $order = json_decode($request->getContent(), true);
         $order['productId'] = $productId;
